@@ -1,0 +1,156 @@
+{
+  "name": "AI Business Assistant Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "94b1ff2e-7ec2-4671-8390-2336a6de1e00",
+      "name": "When chat message received",
+      "webhookId": "09ee5dfe-114b-454b-8056-5e2b877873b0"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a professional AI Business Assistant for a web development company.\n\nYour responsibilities:\n1. Answer customer questions about website development, WordPress, e-commerce websites, and digital services.\n2. Help users understand business processes and project requirements.\n3. Use the Calculator tool whenever mathematical calculations are required.\n4. Ask relevant follow-up questions when information is missing.\n5. Give clear, professional, friendly, and concise responses.\n6. Never invent service prices, company policies, or business information.\n7. If you do not know an answer, clearly say so instead of guessing.\n8. For website project inquiries, ask about the website type, required features, and project goals."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        384,
+        0
+      ],
+      "id": "a867123d-b258-425b-b978-730420a5aa33",
+      "name": "AI Agent",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        96
+      ],
+      "id": "4e6d3fa7-5126-4edb-aa72-00a08a05a843",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        544,
+        208
+      ],
+      "id": "c91d78f5-a467-461b-915d-1461a56b5a32",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ce6b74f9-857c-409d-9678-725298bca343",
+              "name": "Status",
+              "value": "Error",
+              "type": "string"
+            },
+            {
+              "id": "52bc8284-2fd1-4b30-a646-87e94cbf4f8c",
+              "name": "Error Message",
+              "value": "={{ $json.error?.message || $json.message || 'AI Agent error occurred' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        752,
+        96
+      ],
+      "id": "256f92d9-3585-4f2e-8c11-71840ac8ba78",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "277631d2-9854-47ae-bf27-d1580822d9c6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9b674c049d629986c4d9784fe2d5f75960d4fca367ad7eab2171edf87070bdc7"
+  },
+  "nodeGroups": [],
+  "id": "lIhoDPUGMTR1GWDO",
+  "tags": []
+}
