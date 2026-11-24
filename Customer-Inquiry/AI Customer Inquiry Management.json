@@ -1,0 +1,223 @@
+{
+  "name": "AI Customer Inquiry Management",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Customer Inquiry Form",
+        "formDescription": "Please submit your inquiry below",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Customer Name"
+            },
+            {
+              "fieldLabel": "Email Address",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Customer Inquiry"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "73fd1ecb-e473-4ccc-a85a-d178f3b3ed54",
+      "name": "On form submission",
+      "webhookId": "241bedca-05a3-4864-bc0e-2c3f29e7e5d7"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Analyze the following customer inquiry.\n\nClassify it into exactly one category:\nSales, Support, or General.\n\nGenerate a polite and professional response.\nDo not invent company policies or promises.",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a professional customer support assistant.  Analyze the customer inquiry.  Classify the inquiry into exactly one category: Sales, Support, or General.  Generate a polite and professional response based on the customer's message.  Do not invent company policies or promises.  Return your answer in this format:  Category: Sales/Support/General Response: Your reply to the customer"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "={{ $json['Customer Name'] }}{{ $json['Email Address'] }}{{ $json['Customer Inquiry'] }}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        608,
+        0
+      ],
+      "id": "d73c2437-5e12-4c88-9f27-768b8aa92e6a",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        992,
+        0
+      ],
+      "id": "6d91869c-b981-4f71-96e0-13b1802fe581",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/10PYIhta9-XHrhRCUW6hkS0kohcIlvzfOqZWiPp5LozQ/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10PYIhta9-XHrhRCUW6hkS0kohcIlvzfOqZWiPp5LozQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Customer Name": "={{ $('On form submission').item.json['Customer Name'] }}",
+            "Email": "={{ $('On form submission').item.json['Email Address'] }}",
+            "Inquiry": "={{ $('On form submission').item.json['Customer Inquiry'] }}",
+            "Category": "={{ $json.text.split('Category: ')[1].split('\\n')[0] }}",
+            "AI Response": "={{ $json.text.split('Response: ')[1] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Inquiry",
+              "displayName": "Inquiry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Response",
+              "displayName": "AI Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        144
+      ],
+      "id": "f807b5de-6f45-4cd7-94e2-f3f64e057744",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "404CdUHawIk7tFn4",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a8913e97-2f3a-4421-be39-384bbd7f9b2b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9b674c049d629986c4d9784fe2d5f75960d4fca367ad7eab2171edf87070bdc7"
+  },
+  "nodeGroups": [],
+  "id": "IOojENkiGANJ7mR1",
+  "tags": []
+}
